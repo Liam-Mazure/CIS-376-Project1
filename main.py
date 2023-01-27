@@ -52,6 +52,51 @@ update_grid.last_update = pygame.time.get_ticks()
 screen = pygame.display.set_mode(screen_size)
 
 clock = pygame.time.Clock()
+
+#Player class
+class Player:
+    def __init__(self, x, y):
+        self.x = int(x)
+        self.y = int(y)
+        self.rect = pygame.Rect(self.x, self.y, 10, 10)
+        self.color = (255, 255, 255)
+        self.curX = 0
+        self.curY = 0
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = False
+        self.speed = 2
+    
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+
+    def update_player(self):
+        self.curX = 0
+        self.curY = 0
+        position = (self.x, self.y)
+        grid_x, grid_y = position[0] // cell_size[0], position[1] // cell_size[1]
+
+        if not grid[grid_x][grid_y].alive:
+            if self.left and not self.right:
+                self.curX = -self.speed
+            if self.right and not self.left:
+                self.curX = self.speed
+            if self.up and not self.down:
+                self.curY = -self.speed
+            if self.down and not self.up:
+                self.curY = self.speed
+        
+        self.x += self.curX
+        self.y += self.curY
+
+        self.rect = pygame.Rect(int(self.x), int(self.y), 10, 10)
+    
+    
+
+#Initialize player
+player = Player(10,10)
+
 # Main loop
 running = True
 while running:
@@ -66,6 +111,26 @@ while running:
             grid[x][y].alive = not grid[x][y].alive
         update_grid()
 
+        #Check if arrow keys are pressed
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                player.left = True
+            if event.key == pygame.K_RIGHT:
+                player.right = True
+            if event.key == pygame.K_UP:
+                player.up = True
+            if event.key == pygame.K_DOWN:
+                player.down = True
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                player.left = False
+            if event.key == pygame.K_RIGHT:
+                player.right = False
+            if event.key == pygame.K_UP:
+                player.up = False
+            if event.key == pygame.K_DOWN:
+                player.down = False
+
     # Clear the screen
     if running:
         screen.fill((0, 0, 0))
@@ -76,8 +141,11 @@ while running:
                 color = (0, 255, 0) if grid[x][y].alive else (0, 0, 0)
                 pygame.draw.rect(screen, color, grid[x][y].rect)
                 pygame.draw.rect(screen, (0, 0, 0), grid[x][y].rect, 1)
+        
+        player.draw(screen)
 
     if running:
+        player.update_player()
         pygame.display.flip()
     clock.tick(fps)
 pygame.quit()
