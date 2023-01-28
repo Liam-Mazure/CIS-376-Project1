@@ -72,6 +72,8 @@ class Player:
         pygame.draw.rect(screen, self.color, self.rect)
 
     def update_player(self):
+        screenWidth = 600
+        screenHeight = 600
         self.curX = 0
         self.curY = 0
         position = (self.x, self.y)
@@ -86,13 +88,20 @@ class Player:
                 self.curY = -self.speed
             if self.down and not self.up:
                 self.curY = self.speed
-        
-        self.x += self.curX
-        self.y += self.curY
 
+            self.x += self.curX
+            if self.x < 0:
+                self.x = 0
+            elif self.x > screenWidth - self.rect.width:
+                self.x = screenWidth - self.rect.width
+            self.y += self.curY
+            if self.y < 0:
+                self.y = 0
+            elif self.y > screenHeight - self.rect.height:
+                self.y = screenHeight - self.rect.height
         self.rect = pygame.Rect(int(self.x), int(self.y), 10, 10)
-    
-    
+
+
 
 #Initialize player
 player = Player(10,10)
@@ -134,6 +143,7 @@ while running:
     # Clear the screen
     if running:
         screen.fill((0, 0, 0))
+
     # Draw the grid
     if running:
         for x in range(grid_size[0]):
@@ -141,8 +151,15 @@ while running:
                 color = (0, 255, 0) if grid[x][y].alive else (0, 0, 0)
                 pygame.draw.rect(screen, color, grid[x][y].rect)
                 pygame.draw.rect(screen, (0, 0, 0), grid[x][y].rect, 1)
-        
+            x = grid_size[0] - 1
+            y = grid_size[1]-1
+            grid[x][y].color = (255, 0, 0)
+            pygame.draw.rect(screen, grid[x][y].color, grid[x][y].rect)
         player.draw(screen)
+        if grid[grid_size[0] - 1][y].rect.colliderect(player.rect):
+            running = False
+            print("Game Over")
+
 
     if running:
         player.update_player()
