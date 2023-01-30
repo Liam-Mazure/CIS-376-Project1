@@ -75,8 +75,6 @@ class Player:
         pygame.draw.rect(screen, self.color, self.rect)
 
     def update_player(self):
-        screenWidth = 600
-        screenHeight = 600
         self.curX = 0
         self.curY = 0
         position = (self.x, self.y)
@@ -145,8 +143,7 @@ while running:
             pos = pygame.mouse.get_pos()
             # Check which cell was clicked
             x, y = pos[0] // cell_size[0], pos[1] // cell_size[1]
-            if x >= 0 and x < grid_size[0] and y >= 0 and y < grid_size[1]:
-                grid[x][y].alive = not grid[x][y].alive
+            grid[x][y].alive = not grid[x][y].alive
         update_grid()
 
         #Check if arrow keys are pressed
@@ -172,7 +169,6 @@ while running:
     # Clear the screen
     if running:
         screen.fill((0, 0, 0))
-
     # Draw the grid
     if running:
         for x in range(grid_size[0]):
@@ -204,7 +200,6 @@ while running:
     if running:
         player.update_player()
         pygame.display.flip()
-
-    clock.tick(slider.value)
+    clock.tick(fps)
 pygame.quit()
 
