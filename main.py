@@ -1,5 +1,7 @@
 import pygame
 import random
+from pygame.sprite import Sprite
+
 
 pygame.init()
 pygame.display.init()
@@ -7,12 +9,13 @@ pygame.display.init()
 
 # Set the size of the grid
 grid_size = (20, 20)
-screen_size = (600, 600)
+screen_size = (900, 600)
 fps = 60
 
+buttonArea = pygame.Rect(600, 0, 300, 600)
 
 # Get the size of each cell
-cell_size = (screen_size[0] // grid_size[0], screen_size[1] // grid_size[1])
+cell_size = ((screen_size[0] - buttonArea.width) // grid_size[0], screen_size[1] // grid_size[1])
 
 # Create an empty grid
 grid = [[random.randint(0, 1) for x in range(grid_size[0])] for y in range(grid_size[1])]
@@ -72,6 +75,8 @@ class Player:
         pygame.draw.rect(screen, self.color, self.rect)
 
     def update_player(self):
+        screenWidth = 600
+        screenHeight = 600
         self.curX = 0
         self.curY = 0
         position = (self.x, self.y)
@@ -86,16 +91,48 @@ class Player:
                 self.curY = -self.speed
             if self.down and not self.up:
                 self.curY = self.speed
-        
-        self.x += self.curX
-        self.y += self.curY
 
+            self.x += self.curX
+            if self.x < 0:
+                self.x = 0
+            elif self.x > screenWidth - self.rect.width:
+                self.x = screenWidth - self.rect.width
+            self.y += self.curY
+            if self.y < 0:
+                self.y = 0
+            elif self.y > screenHeight - self.rect.height:
+                self.y = screenHeight - self.rect.height
         self.rect = pygame.Rect(int(self.x), int(self.y), 10, 10)
-    
-    
+
+class FPSSlider(Sprite):
+    def __init__(self, x, y, minFps, maxFps):
+        super().__init__()
+        self.image = pygame.Surface((200, 20))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.minFps = minFps
+        self.maxFps = maxFps
+        self.value = maxFps
+
+    def update(self, mouse_pos):
+        if pygame.mouse.get_pressed()[0] and self.rect.collidepoint(mouse_pos):
+            self.is_clicked = True
+        elif pygame.mouse.get_pressed()[0] == False:
+            self.is_clicked = False
+        if self.is_clicked:
+            self.value = (mouse_pos[0] - self.rect.x) / self.rect.w * (self.maxFps - self.minFps) + self.minFps
+        self.image.fill((255, 255, 255))
+        pygame.draw.rect(self.image, (0, 0, 0), (0, 0, self.value / self.maxFps * self.rect.w, self.rect.h), 0)
 
 #Initialize player
 player = Player(10,10)
+
+slider = FPSSlider(650, 350, 30, 120)
+sliders = pygame.sprite.Group()
+sliders.add(slider)
+font = pygame.font.Font(None, 30)
+
 
 # Main loop
 running = True
@@ -108,7 +145,8 @@ while running:
             pos = pygame.mouse.get_pos()
             # Check which cell was clicked
             x, y = pos[0] // cell_size[0], pos[1] // cell_size[1]
-            grid[x][y].alive = not grid[x][y].alive
+            if x >= 0 and x < grid_size[0] and y >= 0 and y < grid_size[1]:
+                grid[x][y].alive = not grid[x][y].alive
         update_grid()
 
         #Check if arrow keys are pressed
@@ -134,6 +172,7 @@ while running:
     # Clear the screen
     if running:
         screen.fill((0, 0, 0))
+
     # Draw the grid
     if running:
         for x in range(grid_size[0]):
@@ -141,11 +180,31 @@ while running:
                 color = (0, 255, 0) if grid[x][y].alive else (0, 0, 0)
                 pygame.draw.rect(screen, color, grid[x][y].rect)
                 pygame.draw.rect(screen, (0, 0, 0), grid[x][y].rect, 1)
-        
+            x = grid_size[0] - 1
+            y = grid_size[1]-1
+            grid[x][y].color = (255, 0, 0)
+            pygame.draw.rect(screen, grid[x][y].color, grid[x][y].rect)
         player.draw(screen)
+        if grid[grid_size[0] - 1][y].rect.colliderect(player.rect):
+            running = False
+            print("Game Over")
+        pygame.draw.rect(screen, (255, 255, 255), buttonArea)
+
+    if running:
+        mouse_pos = pygame.mouse.get_pos()
+
+        sliders.update(mouse_pos)
+        sliders.draw(screen)
+
+        fps_text = font.render("FPS: {:.2f}".format(slider.value), True, (0,0, 0))
+        screen.blit(fps_text, (650, 325))
+
+        pygame.display.update()
 
     if running:
         player.update_player()
         pygame.display.flip()
-    clock.tick(fps)
+
+    clock.tick(slider.value)
 pygame.quit()
+
