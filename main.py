@@ -90,18 +90,6 @@ class Player:
             if self.down and not self.up:
                 self.curY = self.speed
 
-            self.x += self.curX
-            if self.x < 0:
-                self.x = 0
-            elif self.x > screenWidth - self.rect.width:
-                self.x = screenWidth - self.rect.width
-            self.y += self.curY
-            if self.y < 0:
-                self.y = 0
-            elif self.y > screenHeight - self.rect.height:
-                self.y = screenHeight - self.rect.height
-        self.rect = pygame.Rect(int(self.x), int(self.y), 10, 10)
-
 class FPSSlider(Sprite):
     def __init__(self, x, y, minFps, maxFps):
         super().__init__()
@@ -143,7 +131,8 @@ while running:
             pos = pygame.mouse.get_pos()
             # Check which cell was clicked
             x, y = pos[0] // cell_size[0], pos[1] // cell_size[1]
-            grid[x][y].alive = not grid[x][y].alive
+            if x >= 0 and x < grid_size[0] and y >= 0 and y < grid_size[1]:
+                grid[x][y].alive = not grid[x][y].alive
         update_grid()
 
         #Check if arrow keys are pressed
