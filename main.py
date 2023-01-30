@@ -1,15 +1,19 @@
 import pygame
 import random
+import start_button
 
 pygame.init()
 pygame.display.init()
-
+pygame.display.set_caption("CIS_376_Project1")
 
 # Set the size of the grid
 grid_size = (20, 20)
 screen_size = (600, 600)
+screen = pygame.display.set_mode(screen_size)
 fps = 60
 
+#load start button
+start_pic = pygame.image.load('start_btn_orange.png').convert_alpha()
 
 # Get the size of each cell
 cell_size = (screen_size[0] // grid_size[0], screen_size[1] // grid_size[1])
@@ -49,7 +53,6 @@ def update_grid():
         update_grid.last_update = current_time
 
 update_grid.last_update = pygame.time.get_ticks()
-screen = pygame.display.set_mode(screen_size)
 
 clock = pygame.time.Clock()
 
@@ -102,6 +105,8 @@ class Player:
         self.rect = pygame.Rect(int(self.x), int(self.y), 10, 10)
 
 
+#Initialize start_btn
+start_btn = start_button.Button((600/2), (600/2), start_pic)
 
 #Initialize player
 player = Player(10,10)
@@ -109,6 +114,10 @@ player = Player(10,10)
 # Main loop
 running = True
 while running:
+
+    if start_btn.draw(screen):
+        print("Start")
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
