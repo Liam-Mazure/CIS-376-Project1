@@ -1,16 +1,22 @@
+
 import pygame
 import random
+import start_button
 from pygame.sprite import Sprite
 
 
 pygame.init()
 pygame.display.init()
+pygame.display.set_caption("CIS_376_Project1")
 
 
 # Set the size of the grid
 grid_size = (20, 20)
 screen_size = (900, 600)
 fps = 60
+
+#load start button
+start_pic = pygame.image.load('start_btn_orange.png').convert_alpha()
 
 buttonArea = pygame.Rect(600, 0, 300, 600)
 
@@ -129,6 +135,9 @@ class FPSSlider(Sprite):
 #Initialize player
 player = Player(10,10)
 
+#Initialize start_btn
+start_btn = start_button.Button((600/2), (600/2), start_pic)
+
 slider = FPSSlider(650, 350, 30, 120)
 sliders = pygame.sprite.Group()
 sliders.add(slider)
@@ -138,6 +147,10 @@ font = pygame.font.Font(None, 30)
 # Main loop
 running = True
 while running:
+
+    if start_btn.draw(screen):
+        print("Start")
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -204,4 +217,3 @@ while running:
         pygame.display.flip()
     clock.tick(slider.value)
 pygame.quit()
-
