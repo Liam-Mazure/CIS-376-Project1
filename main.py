@@ -75,6 +75,8 @@ class Player:
         pygame.draw.rect(screen, self.color, self.rect)
 
     def update_player(self):
+        screenWidth = 600
+        screenHeight = 600
         self.curX = 0
         self.curY = 0
         position = (self.x, self.y)
@@ -89,6 +91,18 @@ class Player:
                 self.curY = -self.speed
             if self.down and not self.up:
                 self.curY = self.speed
+
+            self.x += self.curX
+            if self.x < 0:
+                self.x = 0
+            elif self.x > screenWidth - self.rect.width:
+                self.x = screenWidth - self.rect.width
+            self.y += self.curY
+            if self.y < 0:
+                self.y = 0
+            elif self.y > screenHeight - self.rect.height:
+                self.y = screenHeight - self.rect.height
+            self.rect = pygame.Rect(int(self.x), int(self.y), 10, 10)
 
 class FPSSlider(Sprite):
     def __init__(self, x, y, minFps, maxFps):
@@ -108,6 +122,7 @@ class FPSSlider(Sprite):
             self.is_clicked = False
         if self.is_clicked:
             self.value = (mouse_pos[0] - self.rect.x) / self.rect.w * (self.maxFps - self.minFps) + self.minFps
+            self.value = min(max(1, self.value),144)
         self.image.fill((255, 255, 255))
         pygame.draw.rect(self.image, (0, 0, 0), (0, 0, self.value / self.maxFps * self.rect.w, self.rect.h), 0)
 
@@ -177,10 +192,8 @@ while running:
 
     if running:
         mouse_pos = pygame.mouse.get_pos()
-
         sliders.update(mouse_pos)
         sliders.draw(screen)
-
         fps_text = font.render("FPS: {:.2f}".format(slider.value), True, (0,0, 0))
         screen.blit(fps_text, (650, 325))
 
@@ -189,6 +202,6 @@ while running:
     if running:
         player.update_player()
         pygame.display.flip()
-    clock.tick(fps)
+    clock.tick(slider.value)
 pygame.quit()
 
