@@ -1,4 +1,3 @@
-
 import pygame
 import random
 import start_button
@@ -13,6 +12,7 @@ pygame.display.set_caption("CIS_376_Project1")
 # Set the size of the grid
 grid_size = (20, 20)
 screen_size = (900, 600)
+screen = pygame.display.set_mode(screen_size)
 fps = 60
 
 #load start button
@@ -58,7 +58,7 @@ def update_grid():
         update_grid.last_update = current_time
 
 update_grid.last_update = pygame.time.get_ticks()
-screen = pygame.display.set_mode(screen_size)
+
 
 clock = pygame.time.Clock()
 
@@ -78,7 +78,7 @@ class Player:
         self.speed = 2
     
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
+        pygame.draw.circle(screen, self.color, [self.x, self.y], 5, 0)
 
     def update_player(self):
         screenWidth = 600
@@ -119,7 +119,8 @@ class FPSSlider(Sprite):
         self.rect.y = y
         self.minFps = minFps
         self.maxFps = maxFps
-        self.value = maxFps
+        self.value = 60
+        self.is_clicked = False
 
     def update(self, mouse_pos):
         if pygame.mouse.get_pressed()[0] and self.rect.collidepoint(mouse_pos):
@@ -136,84 +137,103 @@ class FPSSlider(Sprite):
 player = Player(10,10)
 
 #Initialize start_btn
-start_btn = start_button.Button((600/2), (600/2), start_pic)
+start_btn = start_button.Button(((900/2) - 130), ((600/2) - 70), start_pic)
 
 slider = FPSSlider(650, 350, 30, 120)
 sliders = pygame.sprite.Group()
 sliders.add(slider)
 font = pygame.font.Font(None, 30)
 
+def intro_screen():
+    intro = True
+    start = False
+
+    while intro:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+        screen.fill("black")
+        if start_btn.draw(screen):
+            print("Start")
+            start = True 
+            intro = False
+            #if start:
+                #game_loop()
+        pygame.display.update()
+    return start
 
 # Main loop
-running = True
-while running:
+def game_loop():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                # Check which cell was clicked
+                x, y = pos[0] // cell_size[0], pos[1] // cell_size[1]
+                if x >= 0 and x < grid_size[0] and y >= 0 and y < grid_size[1]:
+                    grid[x][y].alive = not grid[x][y].alive
+            update_grid()
 
-    if start_btn.draw(screen):
-        print("Start")
+            #Check if arrow keys are pressed
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    player.left = True
+                if event.key == pygame.K_RIGHT:
+                    player.right = True
+                if event.key == pygame.K_UP:
+                    player.up = True
+                if event.key == pygame.K_DOWN:
+                    player.down = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    player.left = False
+                if event.key == pygame.K_RIGHT:
+                    player.right = False
+                if event.key == pygame.K_UP:
+                    player.up = False
+                if event.key == pygame.K_DOWN:
+                    player.down = False
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            pygame.quit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pos = pygame.mouse.get_pos()
-            # Check which cell was clicked
-            x, y = pos[0] // cell_size[0], pos[1] // cell_size[1]
-            if x >= 0 and x < grid_size[0] and y >= 0 and y < grid_size[1]:
-                grid[x][y].alive = not grid[x][y].alive
-        update_grid()
+        # Clear the screen
+        if running:
+            screen.fill((0, 0, 0))
+        # Draw the grid
+        if running:
+            for x in range(grid_size[0]):
+                for y in range(grid_size[1]):
+                    color = (0, 255, 0) if grid[x][y].alive else (0, 0, 0)
+                    pygame.draw.rect(screen, color, grid[x][y].rect)
+                    pygame.draw.rect(screen, (0, 0, 0), grid[x][y].rect, 1)
+                x = grid_size[0] - 1
+                y = grid_size[1]-1
+                grid[x][y].color = (255, 0, 0)
+                pygame.draw.rect(screen, grid[x][y].color, grid[x][y].rect)
+            player.draw(screen)
+            if grid[grid_size[0] - 1][y].rect.colliderect(player.rect):
+                running = False
+                print("Game Over")
+            pygame.draw.rect(screen, (255, 255, 255), buttonArea)
 
-        #Check if arrow keys are pressed
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                player.left = True
-            if event.key == pygame.K_RIGHT:
-                player.right = True
-            if event.key == pygame.K_UP:
-                player.up = True
-            if event.key == pygame.K_DOWN:
-                player.down = True
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                player.left = False
-            if event.key == pygame.K_RIGHT:
-                player.right = False
-            if event.key == pygame.K_UP:
-                player.up = False
-            if event.key == pygame.K_DOWN:
-                player.down = False
+        if running:
+            mouse_pos = pygame.mouse.get_pos()
+            sliders.update(mouse_pos)
+            sliders.draw(screen)
+            fps_text = font.render("FPS: {:.2f}".format(slider.value), True, (0,0, 0))
+            screen.blit(fps_text, (650, 325))
 
-    # Clear the screen
-    if running:
-        screen.fill((0, 0, 0))
-    # Draw the grid
-    if running:
-        for x in range(grid_size[0]):
-            for y in range(grid_size[1]):
-                color = (0, 255, 0) if grid[x][y].alive else (0, 0, 0)
-                pygame.draw.rect(screen, color, grid[x][y].rect)
-                pygame.draw.rect(screen, (0, 0, 0), grid[x][y].rect, 1)
-            x = grid_size[0] - 1
-            y = grid_size[1]-1
-            grid[x][y].color = (255, 0, 0)
-            pygame.draw.rect(screen, grid[x][y].color, grid[x][y].rect)
-        player.draw(screen)
-        if grid[grid_size[0] - 1][y].rect.colliderect(player.rect):
-            running = False
-            print("Game Over")
-        pygame.draw.rect(screen, (255, 255, 255), buttonArea)
+            pygame.display.update()
 
-    if running:
-        mouse_pos = pygame.mouse.get_pos()
-        sliders.update(mouse_pos)
-        sliders.draw(screen)
-        fps_text = font.render("FPS: {:.2f}".format(slider.value), True, (0,0, 0))
-        screen.blit(fps_text, (650, 325))
+        if running:
+            player.update_player()
+            pygame.display.flip()
+        clock.tick(slider.value)
 
-        pygame.display.update()
-
-    if running:
-        player.update_player()
-        pygame.display.flip()
-    clock.tick(slider.value)
+intro_screen()
+if intro_screen:
+    game_loop()
 pygame.quit()
