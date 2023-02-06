@@ -1,5 +1,7 @@
+# Liam Mazure and Cole Blunt
 import pygame
 import random
+import time
 
 from Player import Player
 from Fps_Slider import Fps_Slider
@@ -12,8 +14,10 @@ pygame.display.set_caption("CIS_376_Project1")
 
 
 # Set the size of the grid
+width = 900
+height = 600
 grid_size = (20, 20)
-screen_size = (900, 600)
+screen_size = (width, height)
 screen = pygame.display.set_mode(screen_size)
 
 #Initialize player
@@ -25,9 +29,11 @@ sliders.add(slider)
 
 fps = slider.value
 
+#Initialize font types
 font = pygame.font.Font(None, 30)
+large_font = pygame.font.SysFont(None, 100)
 
-#load start button
+#Load start button
 start_pic = pygame.image.load('start_btn_orange.png').convert_alpha()
 
 #Initialize start_btn
@@ -51,6 +57,13 @@ for x in range(grid_size[0]):
 
 clock = pygame.time.Clock()
 
+#Draws text to screen
+def draw_text(text, color):
+    txt = large_font.render(text, True, color)
+    screen.blit(txt, [290, height/2])
+
+
+#Sets up opening screen
 def intro_screen():
     intro = True
     start = False
@@ -61,6 +74,7 @@ def intro_screen():
                 pygame.quit()
                 quit()
         screen.fill("black")
+        #Once start button is clicked begin game loop
         if start_btn.draw(screen):
             print("Start")
             start = True 
@@ -119,9 +133,13 @@ def game_loop():
                 grid[x][y].color = (255, 0, 0)
                 pygame.draw.rect(screen, grid[x][y].color, grid[x][y].rect)
             player.draw(screen)
+            #Player collides with red clock print game over message
             if grid[grid_size[0] - 1][y].rect.colliderect(player.rect):
+                screen.fill("black")
+                draw_text("Game Over", (255, 0,0))
+                pygame.display.update()
+                time.sleep(4)
                 running = False
-                print("Game Over")
             pygame.draw.rect(screen, (255, 255, 255), buttonArea)
 
         if running:
